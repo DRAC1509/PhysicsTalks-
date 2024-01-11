@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physics Talks</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        #header {
+            background-color: #3498db;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+
+        #content-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .page {
+            display: none;
+        }
+
+        #home {
+            display: block;
+        }
+
+        #login, #register, #threads, #student-discussions, #new-topic-discussion, #find-group, #personal-chat, #field-help, #topic-help, #moderator {
+            padding: 20px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+
+        .chat-container {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .input-container {
+            margin-top: 10px;
+        }
+
+        .message-input {
+            width: 70%;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .send-btn {
+            width: 20%;
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+        }
+
+        .home-btn {
+            margin-top: 10px;
+            cursor: pointer;
+            background-color: #2ecc71;
+            color: white;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .moderator-btn {
+            margin-top: 10px;
+            cursor: pointer;
+            background-color: #e74c3c;
+            color: white;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="header">
+    <h1>Physics Talks</h1>
+</div>
+
+<div id="content-container">
+    <div class="page" id="home">
+        <h2>Welcome to Physics Talks!</h2>
+        <p>Join the discussions in different threads. Click on the buttons above to navigate to specific pages.</p>
+        <button onclick="showPage('login')">Login</button>
+        <button onclick="showPage('register')">Register</button>
+    </div>
+
+    <div class="page" id="login">
+        <h2>Login</h2>
+        <input type="text" id="login-username" placeholder="Username">
+        <input type="password" id="login-password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <button class="home-btn" onclick="showPage('home')">Home</button>
+    </div>
+
+    <div class="page" id="register">
+        <h2>Register</h2>
+        <input type="text" id="register-username" placeholder="Username">
+        <input type="password" id="register-password" placeholder="Password">
+        <button onclick="register()">Register</button>
+        <button class="home-btn" onclick="showPage('home')">Home</button>
+    </div>
+
+    <div class="page" id="threads">
+        <h2>Threads</h2>
+        <button class="home-btn" onclick="showPage('student-discussions')">Student Discussions</button>
+        <button class="home-btn" onclick="showPage('new-topic-discussion')">Start a New Topic</button>
+        <button class="home-btn" onclick="showPage('find-group')">Find a Group</button>
+        <button class="home-btn" onclick="showPage('personal-chat')">Personal Chat</button>
+        <button class="home-btn" onclick="showPage('field-help')">Finding New Field</button>
+        <button class="home-btn" onclick="showPage('topic-help')">Topic Help</button>
+        <button class="home-btn" onclick="showPage('home')">Home</button>
+        <button class="moderator-btn" onclick="showPage('moderator')">Moderator Mode</button>
+    </div>
+
+    <div class="page" id="student-discussions">
+        <h2>Student Discussions</h2>
+        <button class="home-btn" onclick="showPage('threads')">Back to Threads</button>
+        <div class="chat-container" id="student-discussions-chat-container"></div>
+        <div class="input-container">
+            <input type="text" class="message-input" id="student-discussions-message-input" placeholder="Type your message...">
+            <button class="send-btn" onclick="sendMessage('student-discussions')">Send</button>
+        </div>
+    </div>
+
+    <div class="page" id="new-topic-discussion">
+        <h2>Start a New Topic</h2>
+        <button class="home-btn" onclick="showPage('threads')">Back to Threads</button>
+        <div class="chat-container" id="new-topic-discussion-chat-container"></div>
+        <div class="input-container">
+            <input type="text" class="message-input" id="new-topic-discussion-message-input" placeholder="Type your message...">
+            <button class="send-btn" onclick="sendMessage('new-topic-discussion')">Send</button>
+        </div>
+    </div>
+
+    <div class="page" id="find-group">
+        <h2>Find a Group</h2>
+        <button class="home-btn" onclick="showPage('threads')">Back to Threads</button>
+        <div class="chat-container" id="find-group-chat-container"></div>
+        <div class="input-container">
+            <input type="text" class="message-input" id="find-group-message-input" placeholder="Type your message...">
+            <button class="send-btn" onclick="sendMessage('find-group')">Send</button>
+        </div>
+    </div>
+
+    <div class="page" id="personal-chat">
+        <h2>Personal Chat</h2>
+        <button class="home-btn" onclick="showPage('threads')">Back to Threads</button>
+        <div class="chat-container" id="personal-chat-container"></div>
+        <div class="input-container">
+            <input type="text" class="message-input" id="personal-chat-message-input" placeholder="Type your message...">
+            <button class="send-btn" onclick="sendMessage('personal-chat')">Send</button>
+        </div>
+        <div class="input-container">
+            <input type="text" id="invite-username" placeholder="Username">
+            <button class="send-btn" onclick="inviteToChat()">Invite</button>
+        </div>
+    </div>
+
+    <div class="page" id="field-help">
+        <h2>Finding New Field</h2>
+        <button class="home-btn" onclick="showPage('threads')">Back to Threads</button>
+        <div class="chat-container" id="field-help-chat-container"></div>
+        <div class="input-container">
+            <input type="text" class="message-input" id="field-help-message-input" placeholder="Type your message...">
+            <button class="send-btn" onclick="sendMessage('field-help')">Send</button>
+        </div>
+    </div>
+
+    <div class="page" id="topic-help">
+        <h2>Topic Help</h2>
+        <button class="home-btn" onclick="showPage('threads')">Back to Threads</button>
+        <div class="chat-container" id="topic-help-chat-container"></div>
+        <div class="input-container">
+            <input type="text" class="message-input" id="topic-help-message-input" placeholder="Type your message...">
+            <button class="send-btn" onclick="sendMessage('topic-help')">Send</button>
+        </div>
+    </div>
+
+    <div class="page" id="moderator">
+        <h2>Moderator Mode</h2>
+        <button class="home-btn" onclick="showPage('threads')">Back to Threads</button>
+        <!-- Moderator functionalities go here -->
+    </div>
+</div>
+
+<script>
+    let currentUser = null;
+    let isLoggedIn = false;
+
+    function showPage(pageId) {
+        if (pageId !== 'login' && pageId !== 'register' && !isLoggedIn) {
+            alert('Please login first.');
+            return;
+        }
+
+        document.querySelectorAll('.page').forEach(page => {
+            page.style.display = 'none';
+        });
+        document.getElementById(pageId).style.display = 'block';
+    }
+
+    function login() {
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value.trim();
+
+        if (!username || !password) {
+            alert('Please enter both username and password.');
+            return;
+        }
+
+        currentUser = username;
+        isLoggedIn = true;
+
+        showPage('threads');
+    }
+
+    function register() {
+        const username = document.getElementById('register-username').value.trim();
+        const password = document.getElementById('register-password').value.trim();
+
+        if (!username || !password) {
+            alert('Please enter both username and password.');
+            return;
+        }
+
+        currentUser = username;
+        isLoggedIn = true;
+
+        showPage('threads');
+    }
+
+    function sendMessage(threadName) {
+        const messageInput = document.getElementById(`${threadName}-message-input`);
+        const message = messageInput.value.trim();
+        if (message !== '') {
+            const chatContainer = document.getElementById(`${threadName}-chat-container`);
+            chatContainer.innerHTML += `<div>${currentUser}: ${message}</div>`;
+            messageInput.value = '';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    }
+
+    function inviteToChat() {
+        const usernameInput = document.getElementById('invite-username');
+        const username = usernameInput.value.trim();
+        if (username !== '') {
+            alert(`Invitation sent to ${username}`);
+            usernameInput.value = '';
+        }
+    }
+</script>
+
+<script>
+    // Add this script for WebSocket communication
+    const socket = new WebSocket('ws://localhost:3000');
+  
+    socket.addEventListener('message', (event) => {
+      // Handle incoming messages from the server
+      const data = JSON.parse(event.data);
+      const { sender, content } = data;
+      const chatContainer = document.getElementById(`${sender}-chat-container`);
+      chatContainer.innerHTML += `<div>${sender}: ${content}</div>`;
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
+  
+    function sendMessage(threadName) {
+      const messageInput = document.getElementById(`${threadName}-message-input`);
+      const message = messageInput.value.trim();
+  
+      if (message !== '') {
+        // Send the message to the server
+        socket.send(JSON.stringify({ sender: currentUser, content: message }));
+  
+        // Update the local chat container
+        const chatContainer = document.getElementById(`${threadName}-chat-container`);
+        chatContainer.innerHTML += `<div>${currentUser}: ${message}</div>`;
+        messageInput.value = '';
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      }
+    }
+  
+    // Other existing JavaScript code
+  </script>
+  
+  <!-- End of your HTML code -->
+  
